@@ -17,7 +17,6 @@
         .hero h1 { margin-bottom: 10px; }
         .hero p { color: #4caf50; }
         
-        /* Style Filter Bar HNI */
         .filter-container { text-align: center; padding: 20px 6% 0 6%; }
         .filter-btn { background: #fff; border: 1.5px solid #2e7d32; color: #2e7d32; padding: 8px 20px; margin: 5px; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.3s; }
         .filter-btn:hover, .filter-btn.active { background: #2e7d32; color: #fff; }
@@ -29,7 +28,7 @@
         .card-img { width: 100%; height: 200px; object-fit: cover; background: #eee; }
         .card-body { padding: 20px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
         .card-body h3 { color: #5c3a21; margin-bottom: 5px; }
-        .badge { display: inline-block; background: #e8f5e9; color: #2e7d32; font-size: 11px; padding: 2px 8px; border-radius: 4px; margin-bottom: 10px; font-weight: bold; width: fit-content; }
+        .badge { display: inline-block; background: #e8f5e9; color: #2e7d32; font-size: 11px; padding: 2px 8px; border-radius: 4px; margin-bottom: 10px; font-weight: bold; width: fit-content; text-transform: uppercase; }
         .card-body p { font-size: 14px; color: #6b5443; margin-bottom: 15px; }
         .price { font-weight: bold; color: #2e7d32; margin-bottom: 15px; }
         .btn { display: block; text-align: center; background: #2e7d32; color: #fff; text-decoration: none; padding: 10px; border-radius: 20px; font-size: 14px; font-weight: 600; }
@@ -53,12 +52,11 @@
         <p>Gunakan tombol di bawah ini untuk mencari produk pilihan Anda dengan cepat.</p>
     </section>
 
-    <!-- Kolom Filter HNI -->
     <div class="filter-container">
-        <button class="filter-btn active" onclick="saringHNI('semua')">Semua Produk</button>
-        <button class="filter-btn" onclick="saringHNI('kesehatan')">Kesehatan (Herbal)</button>
-        <button class="filter-btn" onclick="saringHNI('kecantikan')">Kecantikan (Cosmetics)</button>
-        <button class="filter-btn" onclick="saringHNI('kebersihan')">Kebutuhan Rumah Tangga</button>
+        <button class="filter-btn active" onclick="saringHNI('semua', event)">Semua Produk</button>
+        <button class="filter-btn" onclick="saringHNI('kesehatan', event)">Kesehatan (Herbal)</button>
+        <button class="filter-btn" onclick="saringHNI('kecantikan', event)">Kecantikan (Cosmetics)</button>
+        <button class="filter-btn" onclick="saringHNI('kebersihan', event)">Kebutuhan Rumah Tangga</button>
     </div>
 
     <div class="container">
@@ -68,12 +66,14 @@
     </div>
 
     <script>
-        const csvUrl = "MASUKKAN_LINK_CSV_PUBLISH_KE_WEB_ANDA_DISINI";
+        // TUKAR TEKS DI BAWAH INI DENGAN LINK CSV TAB HNI ANDA
+        const csvUrl = "MASUKKAN_LINK_CSV_TAB_HNI_ANDA";
         let semuaDataHNI = [];
 
         function csvToJSON(csv) {
             const lines = csv.split("\n");
             const result = [];
+            if (lines.length === 0) return result;
             const headers = lines[0].split(",").map(h => h.trim().toLowerCase());
             for (let i = 1; i < lines.length; i++) {
                 if (!lines[i]) continue;
@@ -91,36 +91,35 @@
             try {
                 const response = await fetch(csvUrl);
                 const csvText = await response.text();
-                const items = csvToJSON(csvText);
-                
-                // Ambil semua item yang mengandung kata 'HNI'
-                semuaDataHNI = items.filter(item => item.kategori && item.kategori.toLowerCase().includes('hni'));
-                saringHNI('semua');
+                semuaDataHNI = csvToJSON(csvText);
+                tampilkanData(semuaDataHNI);
             } catch (e) {
                 document.getElementById("produk-hni").innerHTML = "<p>Gagal memuat data HNI.</p>";
             }
         }
 
-        function saringHNI(kategoriPilihan) {
-            // Ubah style tombol aktif
+        function saringHNI(kategoriPilihan, event) {
             const tombols = document.querySelectorAll('.filter-btn');
             tombols.forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-
-            const container = document.getElementById("produk-hni");
-            container.innerHTML = "";
+            if(event) event.target.classList.add('active');
 
             let dataDisaring = semuaDataHNI;
             if (kategoriPilihan !== 'semua') {
-                dataDisaring = semuaDataHNI.filter(item => item.kategori.toLowerCase().includes(kategoriPilihan));
+                dataDisaring = semuaDataHNI.filter(item => item.kategori && item.kategori.toLowerCase().includes(kategoriPilihan));
             }
+            tampilkanData(dataDisaring);
+        }
 
-            if(dataDisaring.length === 0) {
+        function tampilkanData(data) {
+            const container = document.getElementById("produk-hni");
+            container.innerHTML = "";
+
+            if(data.length === 0) {
                 container.innerHTML = "<p>Produk untuk kategori ini belum tersedia.</p>";
                 return;
             }
 
-            dataDisaring.forEach(item => {
+            data.forEach(item => {
                 container.innerHTML += `
                     <div class="card">
                         <img src="${item.gambar || 'https://via.placeholder.com/500'}" class="card-img" alt="${item.nama}">
@@ -131,7 +130,7 @@
                                 <p>${item.deskripsi}</p>
                             </div>
                             <div>
-                                <div class="price">Rp ${Number(item.harga).toLocaleString('id-ID')}</div>
+                                <div class="price">Rp ${Number(item.harga || 0).toLocaleString('id-ID')}</div>
                                 <a href="https://wa.me/628XXXXXXXXXX?text=Halo%20Rasa%20Bunda,%20saya%20ingin%20beli%20Produk%20HNI:%20${encodeURIComponent(item.nama)}" class="btn" target="_blank">Beli Sekarang</a>
                             </div>
                         </div>
@@ -139,6 +138,7 @@
                 `;
             });
         }
+
         document.addEventListener("DOMContentLoaded", loadHNI);
     </script>
 </body>

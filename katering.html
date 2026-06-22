@@ -64,8 +64,10 @@
     </div>
 
     <script>
-        // TUKAR TEKS DI BAWAH INI DENGAN LINK CSV TAB KATERING ANDA
-        const csvUrl = "https://docs.google.com/spreadsheets/d/1p6gitfqyLu1ecUwZ2knv1bjYTW7CbnaCugiya7HOCbc/export?format=csv&gid=";
+        // Cukup masukkan ID Spreadsheet Anda di sini (Gid=0 berarti mengambil Tab ke-1)
+        const sheetId = "1p6gitfqyLu1ecUwZ2knv1bjYTW7CbnaCugiya7HOCbc";
+        const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=0`;
+        
         let semuaDataKatering = [];
 
         function csvToJSON(csv) {
@@ -92,7 +94,7 @@
                 semuaDataKatering = csvToJSON(csvText);
                 tampilkanData(semuaDataKatering);
             } catch (e) {
-                document.getElementById("produk-katering").innerHTML = "<p>Gagal memuat data katering.</p>";
+                document.getElementById("produk-katering").innerHTML = "<p>Gagal memuat data katering. Pastikan setelan share Sheets sudah 'Siapa saja pemilik link'.</p>";
             }
         }
 

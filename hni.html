@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rasa Bunda - HNI Center</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #fdfbf7; color: #4a3728; line-height: 1.6; }
+        header { background: #fff; display: flex; justify-content: space-between; align-items: center; padding: 20px 6%; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
+        .logo { color: #5c3a21; font-size: 24px; font-weight: 700; text-decoration: none; }
+        .logo span { color: #c99a63; }
+        nav a { color: #5c3a21; text-decoration: none; margin-left: 20px; font-size: 15px; font-weight: 500; }
+        nav a:hover, nav a.active { color: #c99a63; }
+        
+        .hero { text-align: center; padding: 60px 6%; background: #e8f5e9; color: #2e7d32; }
+        .hero h1 { margin-bottom: 10px; }
+        .hero p { color: #4caf50; }
+        
+        .container { padding: 40px 6%; max-width: 1200px; margin: 0 auto; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+        
+        .card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #eee; display: flex; flex-direction: column; }
+        .card-img { width: 100%; height: 200px; object-fit: cover; background: #eee; }
+        .card-body { padding: 20px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .card-body h3 { color: #5c3a21; margin-bottom: 5px; }
+        .badge { display: inline-block; background: #e8f5e9; color: #2e7d32; font-size: 11px; padding: 2px 8px; border-radius: 4px; margin-bottom: 10px; font-weight: bold; width: fit-content; }
+        .card-body p { font-size: 14px; color: #6b5443; margin-bottom: 15px; }
+        .price { font-weight: bold; color: #2e7d32; margin-bottom: 15px; }
+        .btn { display: block; text-align: center; background: #2e7d32; color: #fff; text-decoration: none; padding: 10px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+        .btn:hover { background: #1b5e20; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="index.html" class="logo">Rasa <span>Bunda</span></a>
+        <nav>
+            <a href="index.html">Beranda</a>
+            <a href="katering.html">Katering</a>
+            <a href="hni.html" class="active">Produk HNI</a>
+            <a href="kontak.html">Kontak</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>HNI Herbal &amp; Healthy Center</h1>
+        <p>Menyediakan suplemen kesehatan herbal alami, kosmetik kecantikan halal, dan kebutuhan harian rumah tangga Anda.</p>
+    </section>
+
+    <div class="container">
+        <div id="produk-hni" class="grid">
+            <p>Memuat katalog HNI...</p>
+        </div>
+    </div>
+
+    <script>
+        // MASUKKAN LINK CSV GOOGLE SHEETS YANG SAMA DI SINI
+        const csvUrl = "MASUKKAN_LINK_CSV_PUBLISH_KE_WEB_ANDA_DISINI";
+
+        function csvToJSON(csv) {
+            const lines = csv.split("\n");
+            const result = [];
+            const headers = lines[0].split(",").map(h => h.trim().toLowerCase());
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i]) continue;
+                const obj = {};
+                const currentline = lines[i].split(",");
+                headers.forEach((header, index) => {
+                    obj[header] = currentline[index] ? currentline[index].trim() : "";
+                });
+                result.push(obj);
+            }
+            return result;
+        }
+
+        async function loadHNI() {
+            try {
+                const response = await fetch(csvUrl);
+                const csvText = await response.text();
+                const items = csvToJSON(csvText);
+                const container = document.getElementById("produk-hni");
+                container.innerHTML = "";
+
+                // Filter hanya yang mengandung kata 'HNI'
+                const hniItems = items.filter(item => item.kategori && item.kategori.toLowerCase().includes('hni'));
+
+                if(hniItems.length === 0) {
+                    container.innerHTML = "<p>Belum ada produk HNI yang tersedia.</p>";
+                    return;
+                }
+
+                hniItems.forEach(item => {
+                    container.innerHTML += `
+                        <div class="card">
+                            <img src="${item.gambar || 'https://via.placeholder.com/500'}" class="card-img" alt="${item.nama}">
+                            <div class="card-body">
+                                <div>
+                                    <span class="badge">${item.kategori}</span>
+                                    <h3>${item.nama}</h3>
+                                    <p>${item.deskripsi}</p>
+                                </div>
+                                <div>
+                                    <div class="price">Rp ${Number(item.harga).toLocaleString('id-ID')}</div>
+                                    <a href="https://wa.me/628XXXXXXXXXX?text=Halo%20Rasa%20Bunda,%20saya%20ingin%20beli%20Produk%20HNI:%20${encodeURIComponent(item.nama)}" class="btn" target="_blank">Beli Sekarang</a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (e) {
+                document.getElementById("produk-hni").innerHTML = "<p>Gagal memuat data HNI. Periksa kembali link CSV Anda.</p>";
+            }
+        }
+        document.addEventListener("DOMContentLoaded", loadHNI);
+    </script>
+</body>
+</html>
